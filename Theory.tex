@@ -1,0 +1,163 @@
+\chapter{Appendix A: Mathematical basis}\label{sec:basic_concepts}
+
+\section{Mass balance formulation}
+
+The basis of the sediment fingerprinting method is the use of tracer groups, where each group is a unique sediment source,  to identify statistically significant differences in chemical properties between the source areas and the fluvial sediments (the target sample).   That is, if $n$ sources are mixed $y_{i,j}[M/M]$ mass of a particular element $j$ in each source $i$, the elemental content of element $j$ in the mixture (or target sample) will be calculated as:
+\begin{equation}\label{eq:sum}
+    c_j = \sum x_i y_{i,j}
+\end{equation}
+
+where $x_i$ is the contribution proportion of source $i$. Eq. \eqref{eq:sum} can be written for all the elements considered in the analysis in the following matrix form:
+
+\begin{equation}
+    \mathbf{C} = \mathbf{Y}\mathbf{X}
+\end{equation}\label{eq:mass_balance_matrix}
+
+where $\mathbf{C}_{m}=[\dots c_j \dots]^T$ is a vector containing the elemental profile of the target sample, $\mathbf{X}_{n}=[\dots x_i \dots]^T$ is a vector containing the contribution fraction of each source, $\mathbf{Y}_{n\times m}=[y_{i,j}]$ is a matrix containing the elemental content of each element in each source and $m$ is the total number of elements (or signatures) used in the analysis. 
+
+Note that the sum of the elements of $\mathbf{X}$ must be equal to 1:
+
+\begin{equation}
+    \sum x_i = 1
+\end{equation}
+
+\subsection{Stable Isotopes}
+Stable isotopes are also commonly used for sediment fingerprinting. The stable isotope content of a sample is usually expressed using the $\delta$ value, which is defined as: 
+
+\begin{equation}
+    \delta {^uE} = \left(\frac{\frac{^uE}{E}}{\left(\frac{^uE}{E}\right)_{std}} - 1\right)\times 1000
+\end{equation}
+
+where $^uE$ is the isotope content, $E$ is base element. The $\left(\frac{^uE}{E}\right)_{std}$ is a standard isotope ratio that is used to calculate the $\delta$ value. So the isotope content $^uE$ of for sample can be calculated as: 
+
+\begin{equation}\label{eq:isotope_content}
+    ^uE = \left(\frac{\delta {^uE}}{1000} + 1\right)\left(\frac{^uE}{E}\right)_{std}E
+\end{equation}
+
+When several sediment sources are mixed, the isotope content of the mixture can be calculated as: 
+
+\begin{equation}\label{eq:isotope_mass_balance}
+    \zeta_j = \sum x_i \upsilon_{i,j}
+\end{equation}
+where $\zeta_j$ is the isotope content of isotope $j$ in the mixture and $\upsilon_{i,j}$ is the mean isotope content of isotope $j$ in source $i$ which is calculated using Eq. \eqref{eq:isotope_content}. 
+
+Substituting Eq. \eqref{eq:isotope_content} into Eq. \eqref{eq:isotope_mass_balance} results in: 
+
+\begin{equation}
+    \delta \zeta_j = \frac{\sum x_i \delta \upsilon_{i,j}y_{i,j}}{\sum x_i y_{i,j}}
+\end{equation}
+
+where $\delta$ refers to the $\delta$ values of each isotope. 
+
+The set of linear equations obtained from isotopes can be appended to Eq. \eqref{eq:mass_balance_matrix}. Note that in order to include isotopes in the analysis, the base elements of those isotopes are needed. 
+
+\section{Maximum Likelihood estimation}
+The goal of sediment fingerprint modeling is to estimate the source contributions, $\mathbf{X}$ given some measured values representing the elemental profiles in a number of source groups, $\mathbf{Y}$ and the elemental profile of a target sample $\mathbf{C}$. Here we denote the measured elemental profiles of sources by $\mathbf{\tilde Y}$ and the measured elemental profile of the target sample as $\mathbf{\tilde C}$. The goal is to infer $\mathbf{X}$ given $\mathbf{\tilde Y}$ and $\mathbf{\tilde C}$. Note, because multiple samples representing a source group typically exist, we have multiple instances of $\mathbf{\tilde Y}$ to work with, so we denote the elemental profiles of sources in an individual source sample with $k$, subsequently by $\mathbf{\tilde Y}_k$.
+
+\subsection{Treating source elemental composition deterministically}
+
+The simplest assumption is to consider $\mathbf{Y}$ to be deterministically known as an average over all samples representing that group.
+
+\begin{equation}\label{eq:y_avg}
+    y_{i,j} = \frac{1}{ns_i}\sum \tilde y_{i,j,k}
+\end{equation}
+
+where $ns_i$ is the number of samples in source group $i$.
+
+Assuming conditional independence of errors, the probability density function of observing a measured target sample elemental profile $\mathbf{\tilde C}$, given a contribution vector $\mathbf{X}$ can be calculated as:
+
+\begin{equation}
+    p(\mathbf{\tilde C}|\mathbf{X}) = \prod \frac{g'_j(\tilde c_j)}{\sigma_j}\phi\left\{\frac{g_j[c_j(\mathbf{X})]-g_j(\tilde c_j)}{\sigma_j}\right\}
+\end{equation}
+
+where $\phi$ is the standard normal distribution, $\sigma_j$ is the error standard deviation for element $j$, and $g_j$ is a transformation function that is deemed to map the probability distributions of the error to a normal distribution, which determines the error structure assumed in the method. For example, if the error structure is assumed to be normal, $g(c_j)=c_j$, and the likelihood function will be Gaussian, or if the error structure is assumed to be log-normal and multiplicative, $g(c_j) = ln(c_j)$ which results in a log-normal likelihood function.
+
+The logarithm of the likelihood function is typically used for maximum likelihood estimation:
+
+\begin{equation}\label{eq:loglikelihood}
+    ln[p( \mathbf{\tilde C}|\mathbf{X})] = \sum ln[g'_j(\tilde c_j)] - \sum ln(\sigma_j) - \frac{m}{2}ln(\pi) -\sum \frac{\{g_j[c_j(\mathbf{X})]-g_j(\tilde c_j)\}^2}{2\sigma_j^2}
+\end{equation}
+
+Because the first three terms are independent of $\mathbf{X}$, in the maximum likelihood approach, we only need to find source contributions, $\mathbf{X}$ that maximize the last terms, which turns the problem into a least-squares problem. An optimization algorithm can be used to estimate $\mathbf{X}$ vector and $\sigma$ values that will maximize the log-likelihood function.
+
+In the case of a log-normal and multiplicative error structure, it may be reasonable to assume the same error standard deviation to be the same for all of the elements. This implies that the expected relative error for all elements are equal. This assumption will simplify Eq. \eqref{eq:loglikelihood} to:
+
+\begin{equation}\label{eq:loglikelihood-eqstd}
+    ln[p(\mathbf{\tilde C}|\mathbf{X})] = \sum_j ln[g'_j(\tilde c_j)] - m ln(\sigma) - \frac{m}{2}ln(\pi) -\frac{1}{{2\sigma^2}}\sum \{g_j[c_j(\mathbf{X})]-g_j(\tilde c_j)\}^2
+\end{equation}
+
+which means estimating the source contributions $\mathbf{X}$ involves only minimizing the sum of squared error, $\sum \{g_j[c_j(\mathbf{X})]-g_j(\tilde c_j)\}^2$.
+
+\subsection{Treating source elemental composition as unknown}
+Because the number of samples collected for each source is typically limited, estimation of $\textbf{Y}$ based on Eq. \eqref{eq:y_avg} is not necessarily accurate. If we assume the elemental content of sources follows a probability density function:
+
+\begin{equation}
+    \tilde{y}_{i,j} \sim p_{y,i,j}(\bm{\theta}_{i,j})
+\end{equation}
+
+or in matrix form:
+
+\begin{equation}
+    \mathbf{Y} \sim \mathbf{P}_{y}(\bm{\Theta})
+\end{equation}
+
+where $\bm\theta_{i,j}$ is the parameters of the distribution for element $j$ in source $i$, $\bm{\Theta}$ is the matrix containing parameters for all elements and sources and $\mathbf{P}_{y}$ is a matrix transformation representing elemental content distributions for all elements in all sources.
+
+For the maximum likelihood estimation, the probability of observing the target elemental profile and the source elemental profile of all samples in all source groups given should be maximized:
+
+\begin{equation}\label{eq:loglikelihood-with-y}
+    p(\mathbf{\tilde C},\mathbf{\tilde Y}|\mathbf{X},\mathbf{Y}) = \prod_j \frac{g'_j(\tilde c_j)}{\sigma_j}\phi\left\{\frac{g_j[c_j(\mathbf{X},\mathbf{\Theta})]-g_j(\tilde c_j)}{\sigma_j}\right\}\prod_k \mathbf{P}_y(\mathbf{\tilde Y}_k;\bm{\Theta})
+\end{equation}
+
+where $\mathbf{\tilde Y}_k$ is the observed source elemental matrix for sample $k$. Note that because the expected value of $\mathbf{P}_y$ depends on the parameters defining it (i.e. $\bm{\Theta}$), the predicted elemental profiles of the target samples will depend on the contribution of each source and the distribution parameters the elemental contents in each source:
+
+\begin{equation}
+    c_j(\mathbf{X},\mathbf{\Theta}) = \sum_i x_i E(y_{i,j};\theta_{i,j})
+\end{equation}
+
+where $E(y_{i,j};\theta_{i,j})$ is the expected value of $y_{i,j}$ based on the source elemental content distribution:
+
+\begin{equation}
+    E(y;\theta) = \int yp_{y}(y;\theta)dy
+\end{equation}
+
+As an example if $p_y$ is assumed to be a log-normal distribution with parameters $\theta \equiv \{\mu, \sigma\}$, the expected value of the elemental content will be $E(y)=e^{\mu+\frac{\sigma^2}{2}}$.
+
+If we assume that the distributions of element contents in the sources are independent, the log-likelihood function will be obtained by taking the log of Eq. \eqref{eq:loglikelihood-with-y}:
+
+\begin{equation}
+\begin{split}
+    ln[p(\mathbf{\tilde C},\mathbf{\tilde Y}|\mathbf{X},\mathbf{Y})] = \sum_j ln[g'_j(\tilde c_j)] - \sum_j ln(\sigma_j) - \frac{m}{2}ln(\pi) \\ -\sum_j \frac{\{g_j[c_j(\mathbf{X},\bm{\theta}_{i,j})]-g_j(\tilde c_j)\}^2}{{2\sigma_j^2}} + \sum_i\sum_j\sum_k ln[{p}_{y,i,j}(y_{i,j,k};\bm{\theta}_{i,j})]
+\end{split}
+\end{equation}
+
+Because the first three terms are independent of $\mathbf{X}$ and $\mathbf{\Theta}$, all we need to do to determine $\mathbf{X}$ and $\mathbf{\Theta}$ is to maximize the last two terms. 
+
+\section{Bayesian inference}\label{sec:basic_concepts_bayesian}
+There are several sources of uncertainty that can impact the accuracy and reliability of sediment fingerprinting. These sources include measurement errors in both the target and source samples, non-uniform selection or release of sources, model structural errors due to the changes in elemental composition during transport, the presence of sources not considered, and equifinality.
+
+Measurement errors are an inevitable part of chemical analysis but can also be caused by the natural variability in sediment characteristics. Non-uniform selection of sources can occur due to systematic spatial variation of elemental profiles of a source. This results in the distribution of elements from a particular source contributing to a target sample differing from the distribution obtained from a spatially uniform sampling of sources. Structural errors stem from the fact that the model or the assumption used is a simplification of the real processes. For example, the changes in elemental composition during transport can contribute to model structural error.
+
+Additionally, there may be sources of sediments not considered in the analysis, which can lead to inaccuracies in the fingerprinting results. Equifinality refers to the situation where multiple source combinations can produce the same (or equally good) match with a target sample, making it difficult to identify the true sources of sediment.
+
+It is crucial to quantify these uncertainties to make sound engineering or management decisions based on sediment fingerprinting results., Bayesian inference produces a joint probability distribution of these contributions, in contrast to the maximum likelihood-based techniques.
+
+The Bayesian inference is based on the Bayes theorem:
+
+\begin{equation}\label{eq:Bayesian}
+    p(\mathbf{\Upsilon}|\mathbf{\Xi}) = \frac{p(\mathbf{\Xi}|\mathbf{\Upsilon})p(\mathbf{\Upsilon})}{p(\mathbf{\Xi})}
+\end{equation}
+
+where $\mathbf{\Upsilon}$ denotes model parameters, $\mathbf{\Xi}$ represent observed data, $p(\mathbf{\Xi}|\mathbf{\Upsilon})$ is our likelihood function, $p(\mathbf{\Upsilon})$ is the prior distribution of the parameters, and $p(\mathbf{\Xi})$ is a normalizing factor making the integral of the posterior distribution, $p(\mathbf{\Upsilon}|\mathbf{\Xi})$ equal to one. For slightly complex problems, the analytical evaluation of the posterior distribution is not feasible, and often, methods such as Markov Chain Monte Carlo (MCMC) is used to generate a large number of samples from the posterior distribution. MCMC method does not need to use the precise value of the posterior distribution and only requires the relative value of the posterior distribution for any two parameter sets. Because in Eq. \eqref{eq:Bayesian}, the denominator is independent of the parameter values; we can eliminate the denominator and write it as a proportionality.     
+
+\begin{equation}\label{eq:Bayesian-Prop}
+    p(\mathbf{\Upsilon}|\mathbf{\Xi}) \propto p(\mathbf{\Xi}|\mathbf{\Upsilon})p(\mathbf{\Upsilon})
+\end{equation}
+
+In the context of sediment fingerprinting, Eq. \eqref{eq:Bayesian-Prop} becomes:
+
+\begin{equation}\label{eq:Bayesian-Prop}
+    p(\mathbf{X},\mathbf{Y}|\mathbf{\tilde C, \tilde Y}) \propto p(\mathbf{\tilde C, \tilde Y}|\mathbf{X},\mathbf{Y})p(\mathbf{X})p(\mathbf{Y})
+\end{equation}
+
+where $p(\mathbf{X})$ is the prior distribution of source contributions, and $p(\mathbf{Y})$ is the prior distribution of elemental profiles of sources. The most reasonable assumption in the absence of any other information is to assume $\mathbf{X}$ follows a symmetric Dirichlet distribution with a parameter $\alpha=1$. Because $\mathbf{Y}$ is already included in the likelihood function, its prior must be considered non-informative. The likelihood function $p(\mathbf{\tilde C, \tilde Y}|\mathbf{X},\mathbf{Y})$ is calculated based on Eq. \eqref{eq:loglikelihood-with-y}.
